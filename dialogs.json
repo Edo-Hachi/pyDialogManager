@@ -1,0 +1,86 @@
+{
+  "IDD_MAIN_DIALOG": {
+    "title": "Main Dialog",
+    "x": 30,
+    "y": 30,
+    "width": 200,
+    "height": 150,
+    "widgets": [
+      {
+        "type": "label",
+        "id": "IDC_STATIC_TEXT",
+        "text": "This is a sample dialog.",
+        "x": 10,
+        "y": 10
+      },
+      {
+        "type": "button",
+        "id": "IDOK",
+        "text": "OK",
+        "x": 75,
+        "y": 110,
+        "width": 50,
+        "height": 20
+      },
+      {
+        "type": "button",
+        "id": "IDCANCEL",
+        "text": "Cancel",
+        "x": 135,
+        "y": 110,
+        "width": 50,
+        "height": 20
+      }
+    ]
+  },
+  "IDD_FILE_OPEN": {
+    "title": "Open File",
+    "x": 50,
+    "y": 50,
+    "width": 180,
+    "height": 120,
+    "widgets": [
+      {
+        "type": "label",
+        "id": "IDC_STATIC_TEXT",
+        "text": "Select a file to open.",
+        "x": 10,
+        "y": 10
+      },
+      {
+        "type": "button",
+        "id": "IDOK",
+        "text": "Open",
+        "x": 60,
+        "y": 80,
+        "width": 50,
+        "height": 20
+      }
+    ]
+  },
+  "IDD_SAVE_AS": {
+    "title": "Save As",
+    "x": 60,
+    "y": 60,
+    "width": 180,
+    "height": 120,
+    "widgets": [
+      {
+        "type": "label",
+        "id": "IDC_STATIC_TEXT",
+        "text": "Enter a filename to save.",
+        "x": 10,
+        "y": 10
+      },
+      {
+        "type": "button",
+        "id": "IDOK",
+        "text": "Save",
+        "x": 60,
+        "y": 80,
+        "width": 50,
+        "height": 20
+      }
+    ]
+  }
+}
