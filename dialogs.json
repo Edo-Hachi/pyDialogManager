@@ -11,7 +11,7 @@
         "id": "IDC_STATIC_TEXT",
         "text": "This is a sample dialog.",
         "x": 10,
-        "y": 10
+        "y": 15
       },
       {
         "type": "button",

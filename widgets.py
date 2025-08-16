@@ -1,4 +1,5 @@
 import pyxel
+import time
 
 class WidgetBase:
     """すべてのウィジェットの基底クラス"""

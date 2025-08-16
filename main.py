@@ -11,6 +11,7 @@ class App:
         # 最初のダイアログを表示
         self.dialog_manager.show("IDD_MAIN_DIALOG")
 
+        pyxel.mouse(True)
         pyxel.run(self.update, self.draw)
 
     def update(self):
