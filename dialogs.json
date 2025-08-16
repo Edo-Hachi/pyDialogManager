@@ -62,8 +62,8 @@
     "title": "Save As",
     "x": 60,
     "y": 60,
-    "width": 180,
-    "height": 120,
+    "width": 220,
+    "height": 140,
     "widgets": [
       {
         "type": "label",
@@ -73,11 +73,99 @@
         "y": 10
       },
       {
+        "type": "textbox",
+        "id": "IDC_FILENAME",
+        "text": "example.txt",
+        "x": 10,
+        "y": 30,
+        "width": 200,
+        "height": 20,
+        "max_length": 100
+      },
+      {
         "type": "button",
         "id": "IDOK",
         "text": "Save",
+        "x": 80,
+        "y": 100,
+        "width": 50,
+        "height": 20
+      },
+      {
+        "type": "button",
+        "id": "IDCANCEL",
+        "text": "Cancel",
+        "x": 140,
+        "y": 100,
+        "width": 50,
+        "height": 20
+      }
+    ]
+  },
+  "IDD_TEXT_INPUT": {
+    "title": "Text Input Demo",
+    "x": 10,
+    "y": 10,
+    "width": 250,
+    "height": 160,
+    "widgets": [
+      {
+        "type": "label",
+        "id": "IDC_LABEL_NAME",
+        "text": "Name:",
+        "x": 10,
+        "y": 20
+      },
+      {
+        "type": "textbox",
+        "id": "IDC_NAME",
+        "text": "",
         "x": 60,
-        "y": 80,
+        "y": 20,
+        "width": 180,
+        "height": 20,
+        "max_length": 50
+      },
+      {
+        "type": "label",
+        "id": "IDC_LABEL_EMAIL",
+        "text": "Email:",
+        "x": 10,
+        "y": 50
+      },
+      {
+        "type": "textbox",
+        "id": "IDC_EMAIL",
+        "text": "",
+        "x": 60,
+        "y": 50,
+        "width": 180,
+        "height": 20,
+        "max_length": 100
+      },
+      {
+        "type": "label",
+        "id": "IDC_LABEL_COMMENT",
+        "text": "Comment:",
+        "x": 10,
+        "y": 80
+      },
+      {
+        "type": "textbox",
+        "id": "IDC_COMMENT",
+        "text": "Enter your comment here...",
+        "x": 10,
+        "y": 100,
+        "width": 230,
+        "height": 20,
+        "max_length": 200
+      },
+      {
+        "type": "button",
+        "id": "IDOK",
+        "text": "OK",
+        "x": 120,
+        "y": 130,
         "width": 50,
         "height": 20
       }

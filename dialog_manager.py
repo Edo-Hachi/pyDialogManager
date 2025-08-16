@@ -1,7 +1,7 @@
 import json
 import pyxel
 from dialog import Dialog
-from widgets import LabelWidget, ButtonWidget
+from widgets import LabelWidget, ButtonWidget, TextBoxWidget
 
 class DialogManager:
     """
@@ -18,6 +18,7 @@ class DialogManager:
         self.widget_factory = {
             "label": LabelWidget,
             "button": ButtonWidget,
+            "textbox": TextBoxWidget,
         }
 
     def show(self, dialog_id):
