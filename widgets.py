@@ -1,5 +1,6 @@
 import pyxel
 import time
+from system_settings import settings
 
 class WidgetBase:
     """すべてのウィジェットの基底クラス"""
@@ -60,11 +61,11 @@ class ButtonWidget(WidgetBase):
         x, y = dx + self.x, dy + self.y
         
         # 状態に応じて色を変える
-        bg_color = pyxel.COLOR_LIGHT_BLUE
+        bg_color = pyxel.COLOR_WHITE
         if self.is_hover:
             bg_color = pyxel.COLOR_GRAY
         if self.is_pressed:
-            bg_color = pyxel.COLOR_DARK_GRAY
+            bg_color = pyxel.COLOR_DARK_BLUE
 
         # ボタンの描画
         pyxel.rect(x, y, self.width, self.height, bg_color)
@@ -86,6 +87,7 @@ class TextBoxWidget(WidgetBase):
         self.cursor_blink_interval = 0.5
         self.last_blink_time = time.time()
         self.max_length = definition.get("max_length", 50)
+        self.readonly = definition.get("readonly", False)
         
         # デフォルトサイズ設定
         if self.width == 0:
@@ -98,15 +100,16 @@ class TextBoxWidget(WidgetBase):
         mx, my = pyxel.mouse_x, pyxel.mouse_y
         dx, dy = self.dialog.x, self.dialog.y
         
-        # フォーカス制御
+        # フォーカス制御（読み取り専用の場合はフォーカスしない）
         if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
             if (dx + self.x <= mx < dx + self.x + self.width and
                 dy + self.y <= my < dy + self.y + self.height):
-                self.has_focus = True
-                # クリック位置にカーソルを移動
-                click_x = mx - (dx + self.x) - 4  # パディングを考慮
-                char_index = max(0, min(click_x // 4, len(self.text)))  # 4は文字幅
-                self.cursor_pos = char_index
+                if not self.readonly:
+                    self.has_focus = True
+                    # クリック位置にカーソルを移動
+                    click_x = mx - (dx + self.x) - 4  # パディングを考慮
+                    char_index = max(0, min(click_x // 4, len(self.text)))  # 4は文字幅
+                    self.cursor_pos = char_index
             else:
                 self.has_focus = False
 
@@ -117,8 +120,8 @@ class TextBoxWidget(WidgetBase):
                 self.cursor_visible = not self.cursor_visible
                 self.last_blink_time = current_time
 
-        # フォーカス中のキー入力処理
-        if self.has_focus:
+        # フォーカス中のキー入力処理（読み取り専用でない場合のみ）
+        if self.has_focus and not self.readonly:
             self._handle_keyboard_input()
 
     def _handle_keyboard_input(self):
@@ -198,20 +201,298 @@ class TextBoxWidget(WidgetBase):
         x, y = dx + self.x, dy + self.y
         
         # テキストボックスの背景と枠
-        pyxel.rect(x, y, self.width, self.height, pyxel.COLOR_WHITE)  # 白背景
-        pyxel.rectb(x, y, self.width, self.height, pyxel.COLOR_BLACK)  # 黒枠
+        bg_color = pyxel.COLOR_GRAY if self.readonly else pyxel.COLOR_WHITE
+        pyxel.rect(x, y, self.width, self.height, bg_color)
+        pyxel.rectb(x, y, self.width, self.height, pyxel.COLOR_BLACK)
         
-        # フォーカス時は青い枠
-        if self.has_focus:
-            pyxel.rectb(x-1, y-1, self.width+2, self.height+2, pyxel.COLOR_LIGHT_BLUE)  # 青枠
+        # フォーカス時は青い枠（読み取り専用でない場合のみ）
+        if self.has_focus and not self.readonly:
+            pyxel.rectb(x-1, y-1, self.width+2, self.height+2, pyxel.COLOR_LIGHT_BLUE)
         
         # テキスト描画
         text_x = x + 4  # 左パディング
         text_y = y + (self.height - pyxel.FONT_HEIGHT) // 2  # 垂直中央
         pyxel.text(text_x, text_y, self.text, pyxel.COLOR_BLACK)  # 黒テキスト
         
-        # カーソル描画（フォーカス中かつ表示状態）
-        if self.has_focus and self.cursor_visible:
+        # カーソル描画（フォーカス中かつ表示状態、読み取り専用でない場合のみ）
+        if self.has_focus and self.cursor_visible and not self.readonly:
             cursor_x = text_x + self.cursor_pos * 4  # 4は文字幅
             cursor_y = y + 2
             pyxel.line(cursor_x, cursor_y, cursor_x, cursor_y + self.height - 4, pyxel.COLOR_BLACK)  # 黒いカーソル
+
+class ListBoxWidget(WidgetBase):
+    """複数項目から選択可能なリストボックスウィジェット"""
+    def __init__(self, dialog, definition):
+        super().__init__(dialog, definition)
+        self.items = []  # 表示項目のリスト
+        self.selected_index = -1  # 選択されたアイテムのインデックス
+        self.scroll_offset = 0  # スクロールオフセット
+        self.item_height = definition.get("item_height", 12)  # 1項目の高さ
+        self.visible_items = (self.height - 4) // self.item_height  # 表示可能項目数
+        self.hover_index = -1  # ホバー中のアイテムインデックス
+        
+        # ダブルクリック検出用
+        self.last_click_time = 0
+        self.last_clicked_index = -1
+        
+        # スクロールボタンホバー状態
+        self.hovered_scroll_button = None  # "up5", "up1", "down1", "down5"
+        
+        # デフォルトサイズ設定
+        if self.width == 0:
+            self.width = 200
+        if self.height == 0:
+            self.height = 100
+
+    def set_items(self, items):
+        """リストアイテムを設定"""
+        self.items = items
+        self.selected_index = -1
+        self.scroll_offset = 0
+        self.hover_index = -1
+
+    def get_selected_item(self):
+        """選択されたアイテムを取得"""
+        if 0 <= self.selected_index < len(self.items):
+            return self.items[self.selected_index]
+        return None
+
+    def update(self):
+        # マウス位置チェック
+        mx, my = pyxel.mouse_x, pyxel.mouse_y
+        dx, dy = self.dialog.x, self.dialog.y
+        
+        # スクロールボタンの処理（項目数が表示可能数を超える場合）
+        if len(self.items) > self.visible_items:
+            button_width = 16
+            button_height = 14
+            scroll_area_x = dx + self.x + self.width - button_width
+            
+            # 4つのボタンの位置を計算
+            up5_button_y = dy + self.y
+            up1_button_y = up5_button_y + button_height
+            down1_button_y = dy + self.y + self.height - button_height * 2
+            down5_button_y = dy + self.y + self.height - button_height
+            
+            # ホバー状態とクリック処理
+            self.hovered_scroll_button = None
+            
+            # 上5行ボタン
+            if (scroll_area_x <= mx < scroll_area_x + button_width and
+                up5_button_y <= my < up5_button_y + button_height):
+                self.hovered_scroll_button = "up5"
+                if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
+                    self.scroll_up_fast()
+                    return
+            
+            # 上1行ボタン
+            elif (scroll_area_x <= mx < scroll_area_x + button_width and
+                up1_button_y <= my < up1_button_y + button_height):
+                self.hovered_scroll_button = "up1"
+                if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
+                    self.scroll_up()
+                    return
+            
+            # 下1行ボタン
+            elif (scroll_area_x <= mx < scroll_area_x + button_width and
+                down1_button_y <= my < down1_button_y + button_height):
+                self.hovered_scroll_button = "down1"
+                if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
+                    self.scroll_down()
+                    return
+            
+            # 下5行ボタン
+            elif (scroll_area_x <= mx < scroll_area_x + button_width and
+                down5_button_y <= my < down5_button_y + button_height):
+                self.hovered_scroll_button = "down5"
+                if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
+                    self.scroll_down_fast()
+                    return
+        
+        # リストボックス内でのマウス処理（スクロールボタン領域を除く）
+        list_width = self.width - (16 if len(self.items) > self.visible_items else 0)
+        if (dx + self.x <= mx < dx + self.x + list_width and
+            dy + self.y <= my < dy + self.y + self.height):
+            
+            # リスト内でのマウス位置を計算
+            list_y = my - (dy + self.y + 2)  # パディングを考慮
+            item_index = list_y // self.item_height + self.scroll_offset
+            
+            if 0 <= item_index < len(self.items):
+                self.hover_index = item_index
+                
+                # クリックで選択
+                if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
+                    current_time = time.time()
+                    is_double_click = False
+                    
+                    # ダブルクリック判定
+                    if (self.last_clicked_index == item_index and 
+                        current_time - self.last_click_time < settings.get_double_click_interval()):
+                        is_double_click = True
+                    
+                    # 選択処理
+                    old_selection = self.selected_index
+                    self.selected_index = item_index
+                    
+                    # クリックモードに応じて処理を分岐
+                    if settings.is_single_click_mode():
+                        # シングルクリックモード: 即座にアクション実行
+                        print(f"Single-click selected: {self.items[item_index]}")
+                        if hasattr(self, 'on_item_activated'):
+                            self.on_item_activated(self.selected_index)
+                        
+                        # 選択変更イベントも発火
+                        if old_selection != self.selected_index and hasattr(self, 'on_selection_changed'):
+                            self.on_selection_changed(self.selected_index)
+                    
+                    else:  # ダブルクリックモード
+                        if is_double_click:
+                            # ダブルクリック: アクション実行
+                            print(f"Double-click activated: {self.items[item_index]}")
+                            if hasattr(self, 'on_item_activated'):
+                                self.on_item_activated(self.selected_index)
+                        else:
+                            # シングルクリック: 選択のみ
+                            print(f"Selected item: {self.items[item_index]}")
+                            if old_selection != self.selected_index and hasattr(self, 'on_selection_changed'):
+                                self.on_selection_changed(self.selected_index)
+                    
+                    # ダブルクリック検出用の状態更新
+                    self.last_click_time = current_time
+                    self.last_clicked_index = item_index
+            else:
+                self.hover_index = -1
+        else:
+            self.hover_index = -1
+
+    def scroll_to_item(self, index):
+        """指定されたアイテムが見えるようにスクロール"""
+        if index < self.scroll_offset:
+            self.scroll_offset = index
+        elif index >= self.scroll_offset + self.visible_items:
+            self.scroll_offset = index - self.visible_items + 1
+        
+        # スクロール範囲制限
+        max_scroll = max(0, len(self.items) - self.visible_items)
+        self.scroll_offset = max(0, min(self.scroll_offset, max_scroll))
+
+    def scroll_up(self):
+        """上にスクロール"""
+        if self.scroll_offset > 0:
+            self.scroll_offset -= 1
+
+    def scroll_down(self):
+        """下にスクロール"""
+        max_scroll = max(0, len(self.items) - self.visible_items)
+        if self.scroll_offset < max_scroll:
+            self.scroll_offset += 1
+
+    def scroll_up_fast(self):
+        """上に5行スクロール"""
+        self.scroll_offset = max(0, self.scroll_offset - 5)
+
+    def scroll_down_fast(self):
+        """下に5行スクロール"""
+        max_scroll = max(0, len(self.items) - self.visible_items)
+        self.scroll_offset = min(max_scroll, self.scroll_offset + 5)
+
+    def draw(self):
+        dx, dy = self.dialog.x, self.dialog.y
+        x, y = dx + self.x, dy + self.y
+        
+        # リストボックスの背景と枠
+        pyxel.rect(x, y, self.width, self.height, pyxel.COLOR_WHITE)
+        pyxel.rectb(x, y, self.width, self.height, pyxel.COLOR_BLACK)
+        
+        # 項目を描画
+        for i in range(self.visible_items):
+            item_index = i + self.scroll_offset
+            if item_index >= len(self.items):
+                break
+                
+            item_y = y + 2 + i * self.item_height
+            item = self.items[item_index]
+            
+            # 選択状態の背景
+            if item_index == self.selected_index:
+                pyxel.rect(x + 1, item_y, self.width - 2, self.item_height, pyxel.COLOR_NAVY)
+            elif item_index == self.hover_index:
+                pyxel.rect(x + 1, item_y, self.width - 2, self.item_height, pyxel.COLOR_LIGHT_BLUE)
+            
+            # アイテムテキスト描画
+            text_color = pyxel.COLOR_WHITE if item_index == self.selected_index else pyxel.COLOR_BLACK
+            
+            # テキストが長すぎる場合は切り詰め
+            display_text = str(item)
+            max_chars = (self.width - 8) // 4  # 4は文字幅
+            if len(display_text) > max_chars:
+                display_text = display_text[:max_chars-3] + "..."
+            
+            pyxel.text(x + 4, item_y + 2, display_text, text_color)
+        
+        # 上下スクロールボタン表示（項目数が表示可能数を超える場合）
+        if len(self.items) > self.visible_items:
+            self._draw_scroll_buttons(x, y)
+
+    def _draw_scroll_buttons(self, x, y):
+        """スクロールボタンを描画"""
+        button_width = 16
+        button_height = 14
+        button_x = x + self.width - button_width
+        
+        # 4つのボタンの位置
+        up5_button_y = y
+        up1_button_y = up5_button_y + button_height
+        down1_button_y = y + self.height - button_height * 2
+        down5_button_y = y + self.height - button_height
+        
+        # 上5行ボタン（二重上矢印）
+        bg_color = pyxel.COLOR_LIGHT_BLUE if self.hovered_scroll_button == "up5" else pyxel.COLOR_WHITE
+        pyxel.rect(button_x, up5_button_y, button_width, button_height, bg_color)
+        pyxel.rectb(button_x, up5_button_y, button_width, button_height, pyxel.COLOR_BLACK)
+        self._draw_double_up_arrow(button_x + 8, up5_button_y + 7)
+        
+        # 上1行ボタン（単一上矢印）
+        bg_color = pyxel.COLOR_LIGHT_BLUE if self.hovered_scroll_button == "up1" else pyxel.COLOR_WHITE
+        pyxel.rect(button_x, up1_button_y, button_width, button_height, bg_color)
+        pyxel.rectb(button_x, up1_button_y, button_width, button_height, pyxel.COLOR_BLACK)
+        self._draw_up_arrow(button_x + 8, up1_button_y + 7)
+        
+        # 下1行ボタン（単一下矢印）
+        bg_color = pyxel.COLOR_LIGHT_BLUE if self.hovered_scroll_button == "down1" else pyxel.COLOR_WHITE
+        pyxel.rect(button_x, down1_button_y, button_width, button_height, bg_color)
+        pyxel.rectb(button_x, down1_button_y, button_width, button_height, pyxel.COLOR_BLACK)
+        self._draw_down_arrow(button_x + 8, down1_button_y + 7)
+        
+        # 下5行ボタン（二重下矢印）
+        bg_color = pyxel.COLOR_LIGHT_BLUE if self.hovered_scroll_button == "down5" else pyxel.COLOR_WHITE
+        pyxel.rect(button_x, down5_button_y, button_width, button_height, bg_color)
+        pyxel.rectb(button_x, down5_button_y, button_width, button_height, pyxel.COLOR_BLACK)
+        self._draw_double_down_arrow(button_x + 8, down5_button_y + 7)
+
+    def _draw_up_arrow(self, cx, cy):
+        """上向き矢印を描画（中心座標指定）"""
+        # 塗りつぶし三角形: 上向き
+        pyxel.tri(cx, cy - 3,           # 上頂点
+                  cx - 3, cy + 1,       # 左下
+                  cx + 3, cy + 1,       # 右下
+                  pyxel.COLOR_BLACK)
+
+    def _draw_down_arrow(self, cx, cy):
+        """下向き矢印を描画（中心座標指定）"""
+        # 塗りつぶし三角形: 下向き
+        pyxel.tri(cx - 3, cy - 1,       # 左上
+                  cx + 3, cy - 1,       # 右上
+                  cx, cy + 3,           # 下頂点
+                  pyxel.COLOR_BLACK)
+
+    def _draw_double_up_arrow(self, cx, cy):
+        """二重上向き矢印を描画"""
+        self._draw_up_arrow(cx, cy - 1)  # 上の矢印
+        self._draw_up_arrow(cx, cy + 2)  # 下の矢印
+
+    def _draw_double_down_arrow(self, cx, cy):
+        """二重下向き矢印を描画"""
+        self._draw_down_arrow(cx, cy - 2)  # 上の矢印
+        self._draw_down_arrow(cx, cy + 1)  # 下の矢印

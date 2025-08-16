@@ -1,7 +1,7 @@
 import json
 import pyxel
 from dialog import Dialog
-from widgets import LabelWidget, ButtonWidget, TextBoxWidget
+from widgets import LabelWidget, ButtonWidget, TextBoxWidget, ListBoxWidget
 
 class DialogManager:
     """
@@ -19,6 +19,7 @@ class DialogManager:
             "label": LabelWidget,
             "button": ButtonWidget,
             "textbox": TextBoxWidget,
+            "listbox": ListBoxWidget,
         }
 
     def show(self, dialog_id):

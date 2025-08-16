@@ -35,26 +35,87 @@
   },
   "IDD_FILE_OPEN": {
     "title": "Open File",
-    "x": 50,
-    "y": 50,
-    "width": 180,
-    "height": 120,
+    "x": 10,
+    "y": 10,
+    "width": 236,
+    "height": 236,
     "widgets": [
       {
         "type": "label",
-        "id": "IDC_STATIC_TEXT",
-        "text": "Select a file to open.",
+        "id": "IDC_LABEL_PATH",
+        "text": "Current Path:",
         "x": 10,
-        "y": 10
+        "y": 20
+      },
+      {
+        "type": "textbox",
+        "id": "IDC_PATH_DISPLAY",
+        "text": "",
+        "x": 5,
+        "y": 35,
+        "width": 170,
+        "height": 18,
+        "readonly": true
+      },
+      {
+        "type": "button",
+        "id": "IDC_UP_BUTTON",
+        "text": "Up",
+        "x": 180,
+        "y": 35,
+        "width": 50,
+        "height": 18
+      },
+      {
+        "type": "label",
+        "id": "IDC_LABEL_FILES",
+        "text": "Files:",
+        "x": 5,
+        "y": 58
+      },
+      {
+        "type": "listbox",
+        "id": "IDC_FILE_LIST",
+        "x": 5,
+        "y": 70,
+        "width": 225,
+        "height": 120,
+        "item_height": 10
+      },
+      {
+        "type": "label",
+        "id": "IDC_LABEL_FILENAME",
+        "text": "Name:",
+        "x": 5,
+        "y": 195
+      },
+      {
+        "type": "textbox",
+        "id": "IDC_FILENAME_INPUT",
+        "text": "",
+        "x": 40,
+        "y": 195,
+        "width": 190,
+        "height": 18,
+        "max_length": 255
       },
       {
         "type": "button",
         "id": "IDOK",
         "text": "Open",
-        "x": 60,
-        "y": 80,
+        "x": 120,
+        "y": 218,
         "width": 50,
-        "height": 20
+        "height": 16
+      },
+      {
+        "type": "button",
+        "id": "IDCANCEL",
+        "text": "Cancel",
+        "x": 175,
+        "y": 218,
+        "width": 55,
+        "height": 16
       }
     ]
   },
