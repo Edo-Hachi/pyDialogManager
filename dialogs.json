@@ -121,8 +121,8 @@
   },
   "IDD_SAVE_AS": {
     "title": "Save As",
-    "x": 60,
-    "y": 60,
+    "x": 10,
+    "y": 10,
     "width": 220,
     "height": 140,
     "widgets": [
