@@ -33,8 +33,12 @@ class FileItem:
 
 class FileManager:
     """ファイルマネージャークラス"""
-    def __init__(self):
-        self.current_path = str(Path.home())  # ホームディレクトリから開始
+    def __init__(self, initial_path: Optional[str] = None):
+        # 初期パスが指定されていない場合はカレントディレクトリから開始
+        if initial_path and os.path.exists(initial_path) and os.path.isdir(initial_path):
+            self.current_path = os.path.abspath(initial_path)
+        else:
+            self.current_path = os.getcwd()  # カレントディレクトリから開始
         self.file_filters = ["*.*"]  # デフォルトはすべてのファイル
     
     def get_current_path(self) -> str:

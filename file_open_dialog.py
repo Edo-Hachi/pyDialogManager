@@ -10,9 +10,9 @@ from system_settings import settings
 class FileOpenDialogController:
     """ファイルオープンダイアログのコントローラークラス"""
     
-    def __init__(self, dialog_manager: DialogManager):
+    def __init__(self, dialog_manager: DialogManager, initial_directory: str = None):
         self.dialog_manager = dialog_manager
-        self.file_manager = FileManager()
+        self.file_manager = FileManager(initial_directory)
         self.active_dialog = None
         
     def show_file_open_dialog(self):

@@ -120,46 +120,88 @@
     ]
   },
   "IDD_SAVE_AS": {
-    "title": "Save As",
+    "title": "Save File",
     "x": 10,
     "y": 10,
-    "width": 220,
-    "height": 140,
+    "width": 236,
+    "height": 236,
     "widgets": [
       {
         "type": "label",
-        "id": "IDC_STATIC_TEXT",
-        "text": "Enter a filename to save.",
+        "id": "IDC_LABEL_PATH",
+        "text": "Current Path:",
         "x": 10,
-        "y": 10
+        "y": 20
       },
       {
         "type": "textbox",
-        "id": "IDC_FILENAME",
-        "text": "example.txt",
-        "x": 10,
-        "y": 30,
-        "width": 200,
-        "height": 20,
-        "max_length": 100
+        "id": "IDC_PATH_DISPLAY",
+        "text": "",
+        "x": 5,
+        "y": 35,
+        "width": 170,
+        "height": 18,
+        "readonly": true
+      },
+      {
+        "type": "button",
+        "id": "IDC_UP_BUTTON",
+        "text": "Up",
+        "x": 180,
+        "y": 35,
+        "width": 50,
+        "height": 18
+      },
+      {
+        "type": "label",
+        "id": "IDC_LABEL_FILES",
+        "text": "Files:",
+        "x": 5,
+        "y": 58
+      },
+      {
+        "type": "listbox",
+        "id": "IDC_FILE_LIST",
+        "x": 5,
+        "y": 70,
+        "width": 225,
+        "height": 120,
+        "item_height": 10
+      },
+      {
+        "type": "label",
+        "id": "IDC_LABEL_FILENAME",
+        "text": "Name:",
+        "x": 5,
+        "y": 195
+      },
+      {
+        "type": "textbox",
+        "id": "IDC_FILENAME_INPUT",
+        "text": "",
+        "x": 40,
+        "y": 195,
+        "width": 190,
+        "height": 18,
+        "max_length": 255
       },
       {
         "type": "button",
         "id": "IDOK",
         "text": "Save",
-        "x": 80,
-        "y": 100,
+        "x": 120,
+        "y": 218,
         "width": 50,
-        "height": 20
+        "height": 16
       },
       {
         "type": "button",
         "id": "IDCANCEL",
         "text": "Cancel",
-        "x": 140,
-        "y": 100,
-        "width": 50,
-        "height": 20
+        "x": 175,
+        "y": 218,
+        "width": 55,
+        "height": 16
       }
     ]
   },
