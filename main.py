@@ -1,3 +1,5 @@
+# PyPlcシステムにpyDialogManagerを移行後、このファイルは不要になります
+
 import pyxel
 from dialog_manager import DialogManager
 from file_open_dialog import FileOpenDialogController

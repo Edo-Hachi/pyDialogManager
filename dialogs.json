@@ -38,7 +38,7 @@
     "x": 10,
     "y": 10,
     "width": 236,
-    "height": 236,
+    "height": 240,
     "widgets": [
       {
         "type": "label",
@@ -95,26 +95,55 @@
         "text": "",
         "x": 40,
         "y": 195,
-        "width": 190,
+        "width": 120,
         "height": 18,
         "max_length": 255
+      },
+      {
+        "type": "label",
+        "id": "IDC_LABEL_FILTER",
+        "text": "Filter:",
+        "x": 5,
+        "y": 218
+      },
+      {
+        "type": "dropdown",
+        "id": "IDC_FILE_FILTER",
+        "x": 40,
+        "y": 218,
+        "width": 120,
+        "height": 16,
+        "items": ["All Files (*.*)", "CSV Files (*.csv)", "Text Files (*.txt)", "Python Files (*.py)"],
+        "selected_index": 1,
+        "max_visible_items": 4,
+        "item_height": 12,
+        "_comment": "selected_index: 0=All Files, 1=CSV Files, 2=Text Files, 3=Python Files"
+      },
+      {
+        "type": "checkbox",
+        "id": "IDC_SHOW_DIRECTORIES",
+        "text": "Show Directories",
+        "x": 165,
+        "y": 218,
+        "checked": true,
+        "checkbox_size": 12
       },
       {
         "type": "button",
         "id": "IDOK",
         "text": "Open",
-        "x": 120,
-        "y": 218,
-        "width": 50,
+        "x": 165,
+        "y": 195,
+        "width": 30,
         "height": 16
       },
       {
         "type": "button",
         "id": "IDCANCEL",
         "text": "Cancel",
-        "x": 175,
-        "y": 218,
-        "width": 55,
+        "x": 200,
+        "y": 195,
+        "width": 30,
         "height": 16
       }
     ]
@@ -269,6 +298,198 @@
         "text": "OK",
         "x": 120,
         "y": 130,
+        "width": 50,
+        "height": 20
+      }
+    ]
+  },
+  "IDD_PILOT_TEST": {
+    "title": "Pilot Test Dialog",
+    "x": 80,
+    "y": 80,
+    "width": 120,
+    "height": 80,
+    "widgets": [
+      {
+        "type": "label",
+        "id": "IDC_PILOT_LABEL",
+        "text": "Integration OK!",
+        "x": 20,
+        "y": 20
+      },
+      {
+        "type": "button",
+        "id": "IDOK",
+        "text": "OK",
+        "x": 35,
+        "y": 50,
+        "width": 50,
+        "height": 20
+      }
+    ]
+  },
+  "IDD_DEVICE_ID_EDIT": {
+    "title": "Edit Device ID",
+    "x": 70,
+    "y": 70,
+    "width": 220,
+    "height": 140,
+    "widgets": [
+      {
+        "type": "label",
+        "id": "IDC_LABEL_TYPE",
+        "text": "Device Type:",
+        "x": 20,
+        "y": 25
+      },
+      {
+        "type": "label",
+        "id": "IDC_LABEL_PROMPT",
+        "text": "Enter Device ID:",
+        "x": 20,
+        "y": 45
+      },
+      {
+        "type": "textbox",
+        "id": "IDC_ID_INPUT",
+        "text": "",
+        "x": 20,
+        "y": 65,
+        "width": 180,
+        "height": 20,
+        "max_length": 20
+      },
+      {
+        "type": "label",
+        "id": "IDC_ERROR_MESSAGE",
+        "text": "",
+        "x": 20,
+        "y": 90,
+        "width": 180
+      },
+      {
+        "type": "button",
+        "id": "IDOK",
+        "text": "OK",
+        "x": 20,
+        "y": 110,
+        "width": 80,
+        "height": 20
+      },
+      {
+        "type": "button",
+        "id": "IDCANCEL",
+        "text": "Cancel",
+        "x": 120,
+        "y": 110,
+        "width": 80,
+        "height": 20
+      }
+    ]
+  },
+  "IDD_TIMER_COUNTER_EDIT": {
+    "title": "Edit Timer/Counter Settings",
+    "x": 60,
+    "y": 60,
+    "width": 240,
+    "height": 200,
+    "widgets": [
+      {
+        "type": "label",
+        "id": "IDC_LABEL_TYPE",
+        "text": "Device Type:",
+        "x": 20,
+        "y": 25
+      },
+      {
+        "type": "label",
+        "id": "IDC_LABEL_DEVICE_ID",
+        "text": "Device ID:",
+        "x": 20,
+        "y": 50
+      },
+      {
+        "type": "textbox",
+        "id": "IDC_DEVICE_ID_INPUT",
+        "text": "",
+        "x": 20,
+        "y": 70,
+        "width": 200,
+        "height": 20,
+        "max_length": 10
+      },
+      {
+        "type": "label",
+        "id": "IDC_LABEL_PRESET",
+        "text": "Preset Value:",
+        "x": 20,
+        "y": 100
+      },
+      {
+        "type": "textbox",
+        "id": "IDC_PRESET_INPUT",
+        "text": "",
+        "x": 20,
+        "y": 120,
+        "width": 200,
+        "height": 20,
+        "max_length": 5
+      },
+      {
+        "type": "label",
+        "id": "IDC_ERROR_MESSAGE",
+        "text": "",
+        "x": 20,
+        "y": 145,
+        "width": 200
+      },
+      {
+        "type": "button",
+        "id": "IDOK",
+        "text": "OK",
+        "x": 20,
+        "y": 170,
+        "width": 80,
+        "height": 20
+      },
+      {
+        "type": "button",
+        "id": "IDCANCEL",
+        "text": "Cancel",
+        "x": 120,
+        "y": 170,
+        "width": 80,
+        "height": 20
+      }
+    ]
+  },
+  "IDD_DATA_REGISTER_MOCKUP": {
+    "title": "Data Register (WIP)",
+    "x": 70,
+    "y": 70,
+    "width": 200,
+    "height": 100,
+    "widgets": [
+      {
+        "type": "label",
+        "id": "IDC_LABEL_INFO1",
+        "text": "Feature not implemented.",
+        "x": 10,
+        "y": 20
+      },
+      {
+        "type": "label",
+        "id": "IDC_LABEL_INFO2",
+        "text": "(Dropdown for MOV/ADD/etc.)",
+        "x": 10,
+        "y": 35
+      },
+      {
+        "type": "button",
+        "id": "IDOK",
+        "text": "OK",
+        "x": 75,
+        "y": 65,
         "width": 50,
         "height": 20
       }

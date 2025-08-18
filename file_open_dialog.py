@@ -3,9 +3,10 @@
 
 ファイルシステムとダイアログウィジェットを連携させる機能を提供
 """
-from file_utils import FileManager
-from dialog_manager import DialogManager
-from system_settings import settings
+import os
+from .dialog_manager import DialogManager
+from .file_utils import FileManager, FileItem
+from .system_settings import settings
 
 class FileOpenDialogController:
     """ファイルオープンダイアログのコントローラークラス"""
@@ -14,9 +15,11 @@ class FileOpenDialogController:
         self.dialog_manager = dialog_manager
         self.file_manager = FileManager(initial_directory)
         self.active_dialog = None
+        self.result = None
         
     def show_file_open_dialog(self):
         """ファイルオープンダイアログを表示し、ファイルシステムと連携"""
+        self.result = None # 表示時に結果をリセット
         # ダイアログを表示
         self.dialog_manager.show("IDD_FILE_OPEN")
         self.active_dialog = self.dialog_manager.active_dialog
@@ -26,6 +29,12 @@ class FileOpenDialogController:
             self._initialize_dialog()
             self._refresh_file_list()
             self._setup_event_handlers()
+
+    def get_result(self):
+        """Get the result and clear it."""
+        result = self.result
+        self.result = None
+        return result
     
     def _initialize_dialog(self):
         """ダイアログの初期化"""
@@ -42,6 +51,29 @@ class FileOpenDialogController:
         filename_widget = self._find_widget("IDC_FILENAME_INPUT")
         if filename_widget:
             filename_widget.text = ""
+        
+        # デフォルトフィルターを適用
+        self._apply_initial_filter()
+    
+    def _apply_initial_filter(self):
+        """ダイアログ初期化時にデフォルトフィルターを適用"""
+        filter_widget = self._find_widget("IDC_FILE_FILTER")
+        if filter_widget and hasattr(filter_widget, 'get_selected_value'):
+            selected_filter = filter_widget.get_selected_value()
+            if selected_filter:
+                print(f"[DEBUG] Applying initial filter: {selected_filter}")
+                
+                # フィルターマッピング
+                filter_mapping = {
+                    "All Files (*.*)": ["*.*"],
+                    "CSV Files (*.csv)": ["*.csv"],
+                    "Text Files (*.txt)": ["*.txt"],
+                    "Python Files (*.py)": ["*.py"]
+                }
+                
+                filters = filter_mapping.get(selected_filter, ["*.*"])
+                self.file_manager.set_file_filter(filters)
+                print(f"[DEBUG] Initial filter applied: {filters}")
     
     def _find_widget(self, widget_id: str):
         """ウィジェットIDでウィジェットを検索"""
@@ -97,6 +129,24 @@ class FileOpenDialogController:
                 # ダブルクリックモード: 選択とアクティベートを分離
                 file_list_widget.on_selection_changed = self.handle_file_selection
                 file_list_widget.on_item_activated = self.handle_file_activation
+        
+        # フィルタードロップダウンのイベントハンドラーを設定
+        filter_widget = self._find_widget("IDC_FILE_FILTER")
+        if filter_widget:
+            print(f"[DEBUG] Setting up filter dropdown event handler for widget: {filter_widget}")
+            filter_widget.on_selection_changed = self.handle_filter_changed
+            print(f"[DEBUG] Event handler set successfully")
+        else:
+            print(f"[DEBUG] Filter widget 'IDC_FILE_FILTER' not found!")
+        
+        # ディレクトリ表示チェックボックスのイベントハンドラーを設定
+        checkbox_widget = self._find_widget("IDC_SHOW_DIRECTORIES")
+        if checkbox_widget:
+            print(f"[DEBUG] Setting up directory checkbox event handler for widget: {checkbox_widget}")
+            checkbox_widget.on_checked_changed = self.handle_directory_display_changed
+            print(f"[DEBUG] Checkbox event handler set successfully")
+        else:
+            print(f"[DEBUG] Directory checkbox widget 'IDC_SHOW_DIRECTORIES' not found!")
 
     def handle_file_selection(self, selected_index: int):
         """ファイル選択時の処理（ダブルクリックモードでの選択のみ）"""
@@ -158,7 +208,7 @@ class FileOpenDialogController:
             return None
             
         selected_filename = filename_widget.text.strip()
-        full_path = self.file_manager.get_current_path() + "/" + selected_filename
+        full_path = os.path.join(self.file_manager.get_current_path(), selected_filename)
         
         print(f"Opening file: {full_path}")
         return full_path
@@ -166,10 +216,51 @@ class FileOpenDialogController:
     def handle_cancel_button(self):
         """Cancelボタンが押された時の処理"""
         print("File open dialog cancelled")
+        self.result = None
+        self.dialog_manager.close()
         return None
+    
+    def handle_filter_changed(self, selected_index: int, selected_value: str):
+        """フィルタードロップダウンの選択が変更された時の処理"""
+        print(f"[DEBUG] Filter changed to: {selected_value} (index: {selected_index})")
+        
+        # 選択されたフィルターに応じてファイルマネージャーのフィルターを設定
+        filter_mapping = {
+            "All Files (*.*)": ["*.*"],
+            "CSV Files (*.csv)": ["*.csv"],
+            "Text Files (*.txt)": ["*.txt"],
+            "Python Files (*.py)": ["*.py"]
+        }
+        
+        filters = filter_mapping.get(selected_value, ["*.*"])
+        print(f"[DEBUG] Setting file filters to: {filters}")
+        self.file_manager.set_file_filter(filters)
+        
+        # ファイルリストを更新
+        print(f"[DEBUG] Refreshing file list...")
+        self._refresh_file_list()
+        self._setup_event_handlers()  # イベントハンドラーを再設定
+        print(f"[DEBUG] Filter change complete.")
+    
+    def handle_directory_display_changed(self, show_directories: bool):
+        """ディレクトリ表示チェックボックスの状態が変更された時の処理"""
+        print(f"[DEBUG] Directory display changed to: {show_directories}")
+        
+        # FileManagerに表示設定を保存
+        self.file_manager.show_directories = show_directories
+        
+        # ファイルリストを更新
+        print(f"[DEBUG] Refreshing file list for directory display change...")
+        self._refresh_file_list()
+        self._setup_event_handlers()  # イベントハンドラーを再設定
+        print(f"[DEBUG] Directory display change complete.")
     
     def update(self):
         """フレームごとの更新処理"""
+        # マネージャーと自身のアクティブダイアログが一致しない場合、自身を非アクティブ化
+        if self.active_dialog and self.active_dialog != self.dialog_manager.active_dialog:
+            self.active_dialog = None
+
         if not self.active_dialog:
             return
             
@@ -204,5 +295,20 @@ class FileOpenDialogController:
                     result = self.handle_open_button()
                     if result:
                         print(f"File selected for opening: {result}")
+                        self.result = result
+                        self.dialog_manager.close()
                 elif widget.id == "IDCANCEL":
                     self.handle_cancel_button()
+
+    def _find_widget(self, widget_id: str):
+        """ウィジェットIDでウィジェットを検索"""
+        if not self.active_dialog:
+            return None
+        for widget in self.active_dialog.widgets:
+            if hasattr(widget, 'id') and widget.id == widget_id:
+                return widget
+        return None
+
+    def is_active(self) -> bool:
+        """ダイアログがアクティブかどうかを返す"""
+        return self.dialog_manager.active_dialog is not None and self.active_dialog is not None
