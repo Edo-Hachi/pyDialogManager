@@ -7,15 +7,14 @@ from .dialog_manager import DialogManager
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from core.base_dialog_controller import PyPlcDialogController
 from config import DeviceType, TimerConfig, CounterConfig
 
-class DeviceIdDialogController:
+class DeviceIdDialogController(PyPlcDialogController):
     """デバイスID編集ダイアログのロジックを管理する"""
 
     def __init__(self, dialog_manager: DialogManager):
-        self.dialog_manager = dialog_manager
-        self.active_dialog = None
-        self.result = None
+        super().__init__(dialog_manager)
         self.device_type = None
         self.last_input_text = ""
 
@@ -25,11 +24,7 @@ class DeviceIdDialogController:
         self.result = None
         self.device_type = device_type
         self.last_input_text = initial_value
-        self.dialog_manager.show("IDD_DEVICE_ID_EDIT")
-        self.active_dialog = self.dialog_manager.active_dialog
-        print(f"[DEBUG] Dialog manager active_dialog: {self.active_dialog}")
-
-        if self.active_dialog:
+        if self._safe_show_dialog("IDD_DEVICE_ID_EDIT"):
             print(f"[DEBUG] Dialog successfully created and assigned")
             self.active_dialog.title = f"Edit {device_type.name} ID"
             
@@ -48,11 +43,7 @@ class DeviceIdDialogController:
         else:
             print(f"[DEBUG] ERROR: Failed to create dialog 'IDD_DEVICE_ID_EDIT'")
 
-    def get_result(self):
-        """結果を取得し、クリアする"""
-        result = self.result
-        self.result = None
-        return result
+    # get_result()は基底クラスから継承
 
     def update(self):
         """フレームごとの更新処理"""
@@ -213,20 +204,25 @@ class DeviceIdDialogController:
             if not part:
                 continue
 
-            # 範囲指定チェック (例: T0-10)
+            # 範囲指定チェック (例: T0-10, C001-C005)
             if '-' in part:
-                match = re.match(r'^([TC])(\d+)-(\d+)$', part)
+                match = re.match(r'^([TC])(\d{1,3})-([TC])(\d{1,3})$', part)
                 if not match:
                     return False, f"Invalid range format: {part}"
-                prefix, start_str, end_str = match.groups()
+                start_prefix, start_str, end_prefix, end_str = match.groups()
+                
+                # 同一プレフィックス確認
+                if start_prefix != end_prefix:
+                    return False, f"Range {part}: must use same prefix (T or C)"
+                
                 start, end = int(start_str), int(end_str)
-                if start >= end:
-                    return False, f"Invalid range {part}: start >= end"
+                if start > end:
+                    start, end = end, start  # 自動入れ替え
                 if not (0 <= start <= 255 and 0 <= end <= 255):
                     return False, f"Range {part}: numbers must be 0-255"
-            # 単一指定チェック (例: C20)
+            # 単一指定チェック (例: C20, T001)
             else:
-                match = re.match(r'^([TC])(\d+)$', part)
+                match = re.match(r'^([TC])(\d{1,3})$', part)
                 if not match:
                     return False, f"Invalid address format: {part}"
                 prefix, num_str = match.groups()
@@ -242,15 +238,6 @@ class DeviceIdDialogController:
         return is_valid
 
 
-    def _find_widget(self, widget_id: str):
-        """ウィジェットIDでウィジェットを検索"""
-        if not self.active_dialog:
-            return None
-        for widget in self.active_dialog.widgets:
-            if hasattr(widget, 'id') and widget.id == widget_id:
-                return widget
-        return None
+    # _find_widget()は基底クラスから継承
 
-    def is_active(self) -> bool:
-        """ダイアログがアクティブかどうかを返す"""
-        return self.dialog_manager.active_dialog is not None and self.active_dialog is not None
+    # is_active()は基底クラスから継承（Stale参照検出機能付き）

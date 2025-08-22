@@ -1,7 +1,7 @@
 import pyxel
 import time
 from typing import List, Optional
-from .system_settings import settings
+from system_settings import settings
 
 
 def resolve_color(color_value):

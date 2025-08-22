@@ -1,18 +1,20 @@
 import pyxel
-from .widgets import LabelWidget, ButtonWidget, TextBoxWidget, ListBoxWidget, resolve_color
+from widgets import LabelWidget, ButtonWidget, TextBoxWidget, ListBoxWidget, resolve_color
 
 class Dialog:
     """
     ダイアログのウィンドウ自体を管理するクラス。
     ウィジェットのリストを保持し、それらの更新と描画を制御する。
     """
-    def __init__(self, definition, widgets):
+    def __init__(self, definition, widgets, dialog_id=None):
         self.x = definition.get("x", 0)
         self.y = definition.get("y", 0)
         self.width = definition.get("width", 100)
         self.height = definition.get("height", 100)
         self.title = definition.get("title", "Dialog")
         self.widgets = widgets
+        self.dialog_id = dialog_id
+        self.definition = definition
         self.is_active = True # モーダルなのでデフォルトでアクティブ
         
         # ダイアログレベルのカラープロパティ（COLOR_xxx文字列対応）
@@ -57,3 +59,10 @@ class Dialog:
         # ドロップダウンウィジェットを最後に描画（Z-orderを最前面にするため）
         for dropdown in dropdown_widgets:
             dropdown.draw()
+    
+    def find_widget(self, widget_id):
+        """指定されたIDのウィジェットを検索"""
+        for widget in self.widgets:
+            if hasattr(widget, 'id') and widget.id == widget_id:
+                return widget
+        return None

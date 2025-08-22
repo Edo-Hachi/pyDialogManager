@@ -4,37 +4,49 @@
 ファイルシステムとダイアログウィジェットを連携させる機能を提供
 """
 import os
-from .dialog_manager import DialogManager
-from .file_utils import FileManager, FileItem
-from .system_settings import settings
+from dialog_manager import DialogManager
+from file_utils import FileManager, FileItem
+from system_settings import settings
 
 class FileOpenDialogController:
     """ファイルオープンダイアログのコントローラークラス"""
     
     def __init__(self, dialog_manager: DialogManager, initial_directory: str = None):
         self.dialog_manager = dialog_manager
-        self.file_manager = FileManager(initial_directory)
         self.active_dialog = None
         self.result = None
+        self.file_manager = FileManager(initial_directory)
         
     def show_file_open_dialog(self):
         """ファイルオープンダイアログを表示し、ファイルシステムと連携"""
-        self.result = None # 表示時に結果をリセット
-        # ダイアログを表示
-        self.dialog_manager.show("IDD_FILE_OPEN")
-        self.active_dialog = self.dialog_manager.active_dialog
-        
-        if self.active_dialog:
+        if self._safe_show_dialog("IDD_FILE_OPEN"):
             # 初期化処理
             self._initialize_dialog()
             self._refresh_file_list()
             self._setup_event_handlers()
 
-    def get_result(self):
-        """Get the result and clear it."""
-        result = self.result
+    def _safe_show_dialog(self, dialog_id):
+        """安全にダイアログを表示"""
         self.result = None
-        return result
+        self.dialog_manager.show(dialog_id)
+        self.active_dialog = self.dialog_manager.active_dialog
+        return self.active_dialog is not None
+    
+    def _find_widget(self, widget_id):
+        """ウィジェットを検索"""
+        if not self.active_dialog:
+            return None
+        return self.active_dialog.find_widget(widget_id)
+    
+    def is_active(self):
+        """ダイアログがアクティブかチェック"""
+        return (self.dialog_manager.active_dialog is not None and 
+                self.active_dialog is not None and
+                self.active_dialog is self.dialog_manager.active_dialog)
+    
+    def get_result(self):
+        """結果を取得"""
+        return self.result
     
     def _initialize_dialog(self):
         """ダイアログの初期化"""
@@ -61,7 +73,7 @@ class FileOpenDialogController:
         if filter_widget and hasattr(filter_widget, 'get_selected_value'):
             selected_filter = filter_widget.get_selected_value()
             if selected_filter:
-                print(f"[DEBUG] Applying initial filter: {selected_filter}")
+                #print(f"[DEBUG] Applying initial filter: {selected_filter}")
                 
                 # フィルターマッピング
                 filter_mapping = {
@@ -73,17 +85,9 @@ class FileOpenDialogController:
                 
                 filters = filter_mapping.get(selected_filter, ["*.*"])
                 self.file_manager.set_file_filter(filters)
-                print(f"[DEBUG] Initial filter applied: {filters}")
+                #print(f"[DEBUG] Initial filter applied: {filters}")
     
-    def _find_widget(self, widget_id: str):
-        """ウィジェットIDでウィジェットを検索"""
-        if not self.active_dialog:
-            return None
-            
-        for widget in self.active_dialog.widgets:
-            if hasattr(widget, 'id') and widget.id == widget_id:
-                return widget
-        return None
+    # _find_widget()は基底クラスから継承
     
     def _refresh_file_list(self):
         """ファイルリストを更新"""
@@ -133,20 +137,22 @@ class FileOpenDialogController:
         # フィルタードロップダウンのイベントハンドラーを設定
         filter_widget = self._find_widget("IDC_FILE_FILTER")
         if filter_widget:
-            print(f"[DEBUG] Setting up filter dropdown event handler for widget: {filter_widget}")
+            #print(f"[DEBUG] Setting up filter dropdown event handler for widget: {filter_widget}")
             filter_widget.on_selection_changed = self.handle_filter_changed
-            print(f"[DEBUG] Event handler set successfully")
+            #print(f"[DEBUG] Event handler set successfully")
         else:
-            print(f"[DEBUG] Filter widget 'IDC_FILE_FILTER' not found!")
+            pass
+            #print(f"[DEBUG] Filter widget 'IDC_FILE_FILTER' not found!")
         
         # ディレクトリ表示チェックボックスのイベントハンドラーを設定
         checkbox_widget = self._find_widget("IDC_SHOW_DIRECTORIES")
         if checkbox_widget:
-            print(f"[DEBUG] Setting up directory checkbox event handler for widget: {checkbox_widget}")
+            #print(f"[DEBUG] Setting up directory checkbox event handler for widget: {checkbox_widget}")
             checkbox_widget.on_checked_changed = self.handle_directory_display_changed
-            print(f"[DEBUG] Checkbox event handler set successfully")
+            #print(f"[DEBUG] Checkbox event handler set successfully")
         else:
-            print(f"[DEBUG] Directory checkbox widget 'IDC_SHOW_DIRECTORIES' not found!")
+            pass
+            #print(f"[DEBUG] Directory checkbox widget 'IDC_SHOW_DIRECTORIES' not found!")
 
     def handle_file_selection(self, selected_index: int):
         """ファイル選択時の処理（ダブルクリックモードでの選択のみ）"""
@@ -222,7 +228,7 @@ class FileOpenDialogController:
     
     def handle_filter_changed(self, selected_index: int, selected_value: str):
         """フィルタードロップダウンの選択が変更された時の処理"""
-        print(f"[DEBUG] Filter changed to: {selected_value} (index: {selected_index})")
+        #print(f"[DEBUG] Filter changed to: {selected_value} (index: {selected_index})")
         
         # 選択されたフィルターに応じてファイルマネージャーのフィルターを設定
         filter_mapping = {
@@ -233,27 +239,27 @@ class FileOpenDialogController:
         }
         
         filters = filter_mapping.get(selected_value, ["*.*"])
-        print(f"[DEBUG] Setting file filters to: {filters}")
+        #print(f"[DEBUG] Setting file filters to: {filters}")
         self.file_manager.set_file_filter(filters)
         
         # ファイルリストを更新
-        print(f"[DEBUG] Refreshing file list...")
+        #print(f"[DEBUG] Refreshing file list...")
         self._refresh_file_list()
         self._setup_event_handlers()  # イベントハンドラーを再設定
-        print(f"[DEBUG] Filter change complete.")
+        #print(f"[DEBUG] Filter change complete.")
     
     def handle_directory_display_changed(self, show_directories: bool):
         """ディレクトリ表示チェックボックスの状態が変更された時の処理"""
-        print(f"[DEBUG] Directory display changed to: {show_directories}")
+        #print(f"[DEBUG] Directory display changed to: {show_directories}")
         
         # FileManagerに表示設定を保存
         self.file_manager.show_directories = show_directories
         
         # ファイルリストを更新
-        print(f"[DEBUG] Refreshing file list for directory display change...")
+        #print(f"[DEBUG] Refreshing file list for directory display change...")
         self._refresh_file_list()
         self._setup_event_handlers()  # イベントハンドラーを再設定
-        print(f"[DEBUG] Directory display change complete.")
+        #print(f"[DEBUG] Directory display change complete.")
     
     def update(self):
         """フレームごとの更新処理"""
@@ -300,15 +306,6 @@ class FileOpenDialogController:
                 elif widget.id == "IDCANCEL":
                     self.handle_cancel_button()
 
-    def _find_widget(self, widget_id: str):
-        """ウィジェットIDでウィジェットを検索"""
-        if not self.active_dialog:
-            return None
-        for widget in self.active_dialog.widgets:
-            if hasattr(widget, 'id') and widget.id == widget_id:
-                return widget
-        return None
+    # _find_widget()は基底クラスで実装済み
 
-    def is_active(self) -> bool:
-        """ダイアログがアクティブかどうかを返す"""
-        return self.dialog_manager.active_dialog is not None and self.active_dialog is not None
+    # is_active()は基底クラスから継承（Stale参照検出機能付き）

@@ -1,7 +1,7 @@
 import json
 import pyxel
-from .dialog import Dialog
-from .widgets import LabelWidget, ButtonWidget, TextBoxWidget, ListBoxWidget, DropdownWidget, CheckboxWidget
+from dialog import Dialog
+from widgets import LabelWidget, ButtonWidget, TextBoxWidget, ListBoxWidget, DropdownWidget, CheckboxWidget
 
 
 def resolve_color(color_value):
@@ -80,7 +80,7 @@ class DialogManager:
 
         # Dialogインスタンスを先に仮作成（ウィジェットが親ダイアログを参照できるようにするため）
         # この時点ではウィジェットリストは空
-        new_dialog = Dialog(dialog_def, [])
+        new_dialog = Dialog(dialog_def, [], dialog_id)
 
         # ウィジェット定義からインスタンスを作成
         widgets = []
